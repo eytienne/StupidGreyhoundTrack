@@ -1,7 +1,7 @@
 import pygame
 import time
 from pygame.locals import *
-from ImageEntity import ImageEntity
+from BackgroundEntity import BackgroundEntity
 from DogEntity import DogEntity
 
 
@@ -11,11 +11,8 @@ class Game():
         pygame.base.init()
         pygame.display.set_caption("Dog race")
         pygame.display.set_mode(flags=RESIZABLE)
-        pygame.display.resize_event(VIDEORESIZE)
-        print([e for e in pygame.event.get() if e.type == VIDEORESIZE])
-        exit()
         self.entities = []
-        self.entities.append(ImageEntity("pictures/running_track.png"))
+        self.entities.append(BackgroundEntity("pictures/running_track.png"))
         DogEntity.init_runway(0.5, 0.1, 0.01, 0.72)
         self.entities.append(DogEntity("pictures/dog1.png", 0))
         self.entities.append(DogEntity("pictures/dog2.png", 1))
@@ -27,8 +24,8 @@ class Game():
         text = pygame.font.Font("freesansbold.ttf", 115).render(
             "The winner is " + str(winner) + "!", True, (0, 255, 0), (0, 0, 128))
         text_rect = text.get_rect()
-        text_rect.center = (0, 0)  # tuple(
-        # [dim for dim in pygame.display.get_surface().get_size()])
+        text_rect.center = tuple(
+            [dim/2 for dim in pygame.display.get_surface().get_size()])
 
         pygame.display.get_surface().blit(text, text_rect)
         pygame.display.update()
