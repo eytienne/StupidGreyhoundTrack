@@ -40,6 +40,6 @@ class DogEntity(ImageEntity):
         super().draw(newX, newY)
 
     def __str__(self):
-        return "Chien n°"+str(self.run_line)
+        return "Dog n°"+str(self.run_line)
 
     pass

@@ -19,13 +19,13 @@ class Game():
     @staticmethod
     def launch():
         Game.launched = True
-        Game.entities.append(ImageEntity("pictures/dog1.png"))
+        currentWindow = pygame.display.get_surface()
+        Game.entities.append(ImageEntity(
+            "pictures/submachine-gun.png", 10, 10, width=max(100, 0.1*currentWindow.get_width())))
 
     @staticmethod
     def finish(winner):
         Game.finished = True
-
-        pygame.mixer.music.stop()
 
         text = pygame.font.Font("freesansbold.ttf", 115).render(
             "The winner is " + str(winner) + "!", True, (0, 255, 0), (0, 0, 128))
@@ -36,8 +36,9 @@ class Game():
         pygame.display.get_surface().blit(text, text_rect)
         pygame.display.update()
 
-        time.sleep(1)
-        Game.end()
+        Game.music()
+
+        Timer(5, Game.end).start()
 
     @staticmethod
     def end():
@@ -50,7 +51,7 @@ class Game():
             entity.draw()
             pass
         pygame.display.update()
-    
+
     @staticmethod
     def run():
         # init
@@ -64,10 +65,10 @@ class Game():
         Game.entities.append(DogEntity("pictures/dog2.png", 1))
         Game.launched = False
         Game.finished = False
+        Game.clock = pygame.time.Clock()
         # end init
 
         Timer(random.random()*3, Game.launch).start()
-        Thread(None, Game.music).start()
         while True:
             fellowDogs = Game.get_dogs()
             for event in pygame.event.get():
@@ -79,24 +80,40 @@ class Game():
                 if event.type == KEYDOWN and event.mod & KMOD_CTRL and event.key == K_q:
                     Game.end()
                 if event.type == KEYDOWN and event.key == K_SPACE:
-                    if Game.launched and not fellowDogs[0].is_disqualified():
+                    if Game.launched and not Game.finished and not fellowDogs[0].is_disqualified():
                         fellowDogs[0].go_forward()
                     else:
                         fellowDogs[0].disqualify()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                    if Game.launched and not fellowDogs[1].is_disqualified():
+                    if Game.launched and not Game.finished and not fellowDogs[1].is_disqualified():
                         fellowDogs[1].go_forward()
                     else:
                         fellowDogs[1].disqualify()
+                        
+            if not Game.finished:
+                Game.redraw()
 
-            Game.redraw()
             for dog in fellowDogs:
-                if dog.progress >= 1:
+                if dog.progress >= 1 and not Game.finished:
                     Game.finish(dog)
+
+            Game.clock.tick(30)
 
     @staticmethod
     def music():
-        pygame.mixer.music.load("music/ff7_victory.mp3")
-        pygame.mixer.music.play(-1)
+        pygame.mixer_music.load("music/ff7_victory.mp3")
+        pygame.mixer_music.play()
 
-Thread(None, Game.run).start()
+
+# pygame.init()
+# pygame.mixer_music.set_endevent(USEREVENT)
+
+# pygame.mixer_music.load("music/ff7_victory.mp3")
+# pygame.mixer_music.play()
+
+# end_event = pygame.mixer_music.get_endevent()
+# while end_event != USEREVENT:
+#     end_event = pygame.mixer_music.get_endevent()
+#     pass
+# time.sleep(0)
+Game.run()
