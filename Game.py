@@ -13,19 +13,6 @@ import random
 class Game():
 
     @staticmethod
-    def __init__():
-        pygame.base.init()
-        pygame.display.set_caption("Dog race")
-        pygame.display.set_mode(flags=RESIZABLE)
-        Game.entities = []
-        Game.entities.append(BackgroundEntity("pictures/running_track.png"))
-        DogEntity.init_runway(0.3, 0.1, 0.01, 0.70)
-        Game.entities.append(DogEntity("pictures/dog1.png", 0))
-        Game.entities.append(DogEntity("pictures/dog2.png", 1))
-        Game.launched = False
-        Game.finished = False
-
-    @staticmethod
     def get_dogs():
         return [ent for ent in Game.entities if type(ent) == DogEntity]
 
@@ -66,6 +53,19 @@ class Game():
     
     @staticmethod
     def run():
+        # init
+        pygame.base.init()
+        pygame.display.set_caption("Dog race")
+        pygame.display.set_mode(flags=RESIZABLE)
+        Game.entities = []
+        Game.entities.append(BackgroundEntity("pictures/running_track.png"))
+        DogEntity.init_runway(0.3, 0.1, 0.01, 0.70)
+        Game.entities.append(DogEntity("pictures/dog1.png", 0))
+        Game.entities.append(DogEntity("pictures/dog2.png", 1))
+        Game.launched = False
+        Game.finished = False
+        # end init
+
         Timer(random.random()*3, Game.launch).start()
         Thread(None, Game.music).start()
         while True:
@@ -99,5 +99,4 @@ class Game():
         pygame.mixer.music.load("music/ff7_victory.mp3")
         pygame.mixer.music.play(-1)
 
-Game.__init__()
 Thread(None, Game.run).start()
