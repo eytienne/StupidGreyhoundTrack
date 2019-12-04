@@ -1,26 +1,45 @@
 import pygame
 import time
 from pygame.locals import *
+from ImageEntity import ImageEntity
 from BackgroundEntity import BackgroundEntity
 from DogEntity import DogEntity
+from threading import Timer
+from threading import Thread
+import threading
+import random
 
 
 class Game():
 
-    def __init__(self):
+    @staticmethod
+    def __init__():
         pygame.base.init()
         pygame.display.set_caption("Dog race")
         pygame.display.set_mode(flags=RESIZABLE)
-        self.entities = []
-        self.entities.append(BackgroundEntity("pictures/running_track.png"))
-        DogEntity.init_runway(0.5, 0.1, 0.01, 0.72)
-        self.entities.append(DogEntity("pictures/dog1.png", 0))
-        self.entities.append(DogEntity("pictures/dog2.png", 1))
+        Game.entities = []
+        Game.entities.append(BackgroundEntity("pictures/running_track.png"))
+        DogEntity.init_runway(0.3, 0.1, 0.01, 0.70)
+        Game.entities.append(DogEntity("pictures/dog1.png", 0))
+        Game.entities.append(DogEntity("pictures/dog2.png", 1))
+        Game.launched = False
+        Game.finished = False
 
-    def get_dogs(self):
-        return [ent for ent in self.entities if type(ent) == DogEntity]
+    @staticmethod
+    def get_dogs():
+        return [ent for ent in Game.entities if type(ent) == DogEntity]
 
-    def finish(self, winner):
+    @staticmethod
+    def launch():
+        Game.launched = True
+        Game.entities.append(ImageEntity("pictures/dog1.png"))
+
+    @staticmethod
+    def finish(winner):
+        Game.finished = True
+
+        pygame.mixer.music.stop()
+
         text = pygame.font.Font("freesansbold.ttf", 115).render(
             "The winner is " + str(winner) + "!", True, (0, 255, 0), (0, 0, 128))
         text_rect = text.get_rect()
@@ -31,37 +50,54 @@ class Game():
         pygame.display.update()
 
         time.sleep(1)
-        self.end()
+        Game.end()
 
-    def end(self):
+    @staticmethod
+    def end():
         pygame.quit()
         exit()
 
-    def redraw(self):
-        for entity in self.entities:
+    @staticmethod
+    def redraw():
+        for entity in Game.entities:
             entity.draw()
             pass
         pygame.display.update()
-
-    def run(self):
+    
+    @staticmethod
+    def run():
+        Timer(random.random()*3, Game.launch).start()
+        Thread(None, Game.music).start()
         while True:
-            fellowDogs = self.get_dogs()
+            fellowDogs = Game.get_dogs()
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    self.end()
+                    Game.end()
                 if event.type == VIDEORESIZE:
-                    self.redraw()
+                    pygame.display.set_mode(event.size, flags=RESIZABLE)
+                    Game.redraw()
                 if event.type == KEYDOWN and event.mod & KMOD_CTRL and event.key == K_q:
-                    self.end()
+                    Game.end()
                 if event.type == KEYDOWN and event.key == K_SPACE:
-                    fellowDogs[0].go_forward()
+                    if Game.launched and not fellowDogs[0].is_disqualified():
+                        fellowDogs[0].go_forward()
+                    else:
+                        fellowDogs[0].disqualify()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                    fellowDogs[1].go_forward()
+                    if Game.launched and not fellowDogs[1].is_disqualified():
+                        fellowDogs[1].go_forward()
+                    else:
+                        fellowDogs[1].disqualify()
 
-            self.redraw()
+            Game.redraw()
             for dog in fellowDogs:
                 if dog.progress >= 1:
-                    self.finish(dog)
+                    Game.finish(dog)
 
+    @staticmethod
+    def music():
+        pygame.mixer.music.load("music/ff7_victory.mp3")
+        pygame.mixer.music.play(-1)
 
-Game().run()
+Game.__init__()
+Thread(None, Game.run).start()

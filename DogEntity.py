@@ -15,12 +15,22 @@ class DogEntity(ImageEntity):
         super().__init__(url)
         self.run_line = run_line
         self.progress = 0
+        self.disqualified = False
 
     def get_run_line(self):
         return self.run_line
 
     def go_forward(self):
         self.progress += 0.1
+
+    def disqualify(self):
+        self.disqualified = True
+
+    def is_disqualified(self):
+        return self.disqualified
+
+    def to_draw(self):
+        return pygame.transform.rotate(super().to_draw(), 180) if self.disqualified else super().to_draw()
 
     def draw(self):
         width, height = pygame.display.get_surface().get_size()
