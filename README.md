@@ -1,11 +1,7 @@
-# DogTrainingSimulator
-DogTrainingSimulator
+# StupidGreyhoundTrack
 
-V1
+### How to play
 
-Avoir une interface graphique avec un espace clos dans lequel le chien pourrait évoluer.
-
-La fenetre a pour image de fond un cloître. 
-Le chien est déplacé par les flèches directionnelles dans 8 directions (4 cardinales + 4 diagonales).
-
-
+Type these commands in your Python prompt:
+`python3 -m pip install -r requirements.txt`
+`python3 Game.py`
