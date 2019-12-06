@@ -14,14 +14,18 @@ class Game():
 
     @staticmethod
     def get_dogs():
-        return [ent for ent in Game.entities if type(ent) == DogEntity]
+        return sorted([ent for ent in Game.entities if type(ent) == DogEntity], key=lambda e: e.run_line)
 
     @staticmethod
     def launch():
         Game.launched = True
         currentWindow = pygame.display.get_surface()
+        pygame.mixer.Sound("audio/mp5.wav").play()
+        pygame.time.wait(300)
         Game.entities.append(ImageEntity(
             "pictures/submachine-gun.png", 10, 10, width=max(100, 0.1*currentWindow.get_width())))
+        pygame.mixer_music.load("audio/off_limits.wav")
+        pygame.mixer_music.play(-1)
 
     @staticmethod
     def finish(winner):
@@ -36,9 +40,12 @@ class Game():
         pygame.display.get_surface().blit(text, text_rect)
         pygame.display.update()
 
-        Game.music()
-
-        Timer(5, Game.end).start()
+        pygame.mixer_music.fadeout(1)
+        pygame.mixer_music.load("audio/ff7_victory.wav")
+        pygame.mixer_music.play()
+        while pygame.mixer_music.get_busy():
+            pass
+        Game.end()
 
     @staticmethod
     def end():
@@ -99,21 +106,5 @@ class Game():
 
             Game.clock.tick(30)
 
-    @staticmethod
-    def music():
-        pygame.mixer_music.load("music/ff7_victory.mp3")
-        pygame.mixer_music.play()
 
-
-# pygame.init()
-# pygame.mixer_music.set_endevent(USEREVENT)
-
-# pygame.mixer_music.load("music/ff7_victory.mp3")
-# pygame.mixer_music.play()
-
-# end_event = pygame.mixer_music.get_endevent()
-# while end_event != USEREVENT:
-#     end_event = pygame.mixer_music.get_endevent()
-#     pass
-# time.sleep(0)
 Game.run()
