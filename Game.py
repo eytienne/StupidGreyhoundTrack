@@ -12,13 +12,18 @@ import random
 
 class Game():
 
-    @staticmethod
-    def get_dogs():
-        return sorted([ent for ent in Game.entities if type(ent) == DogEntity], key=lambda e: e.run_line)
+    entities = []
+    launched = False
+    finished = False
+    clock = pygame.time.Clock()
+    listeners = {}
+    key_for_line = [K_SPACE, K_RETURN, K_a]
 
     @staticmethod
     def launch():
         Game.launched = True
+        Game.remove_event_listener(KEYDOWN, Game.get_dog_disqualified)
+        Game.add_event_listener(KEYDOWN, Game.get_dog_forward)
         currentWindow = pygame.display.get_surface()
         pygame.mixer.Sound("audio/mp5.wav").play()
         pygame.time.wait(300)
@@ -30,7 +35,7 @@ class Game():
     @staticmethod
     def finish(winner):
         Game.finished = True
-
+        Game.remove_event_listener(KEYDOWN, Game.get_dog_forward)
         text = pygame.font.Font("freesansbold.ttf", 115).render(
             "The winner is " + str(winner) + "!", True, (0, 255, 0), (0, 0, 128))
         text_rect = text.get_rect()
@@ -53,6 +58,10 @@ class Game():
         exit()
 
     @staticmethod
+    def get_dogs(key: callable = lambda e: e.run_line):
+        return sorted([ent for ent in Game.entities if type(ent) == DogEntity], key=key)
+
+    @staticmethod
     def redraw():
         for entity in Game.entities:
             entity.draw()
@@ -60,49 +69,67 @@ class Game():
         pygame.display.update()
 
     @staticmethod
+    def resize(event):
+        pygame.display.set_mode(event.size, flags=RESIZABLE)
+        Game.redraw()
+
+    @staticmethod
+    def add_event_listener(event_type, listener: callable):
+        if not event_type in Game.listeners:
+            Game.listeners[event_type] = []
+        Game.listeners[event_type].append(listener)
+
+    @staticmethod
+    def remove_event_listener(event_type, listener: callable):
+        if event_type in Game.listeners:
+            Game.listeners[event_type].remove(listener)
+
+    def get_dog_forward(event):
+        run_line = Game.key_for_line.index(event.key)
+        if run_line != ValueError:
+            fellowDog = Game.get_dogs()[run_line]
+            fellowDog.go_forward()
+            if fellowDog.progress >= 1:
+                Game.redraw()
+                Game.finish(fellowDog)
+
+    def get_dog_disqualified(event):
+        run_line = Game.key_for_line.index(event.key)
+        if run_line != ValueError:
+            Game.get_dogs()[run_line].disqualify()
+
+    @staticmethod
     def run():
         # init
         pygame.base.init()
         pygame.display.set_caption("Dog race")
         pygame.display.set_mode(flags=RESIZABLE)
-        Game.entities = []
         Game.entities.append(BackgroundEntity("pictures/running_track.png"))
-        DogEntity.init_runway(0.3, 0.1, 0.01, 0.70)
-        Game.entities.append(DogEntity("pictures/dog1.png", 0))
-        Game.entities.append(DogEntity("pictures/dog2.png", 1))
-        Game.launched = False
-        Game.finished = False
-        Game.clock = pygame.time.Clock()
+        DogEntity.init_runway(0.33, 0.1, 0.01, 0.70)
+        for i in range(0, len(Game.key_for_line)):
+            Game.entities.append(
+                DogEntity("pictures/dog" + str(1 if i % 2 == 0 else 2) + ".png", i))
         # end init
+
+        Game.add_event_listener(QUIT, Game.end)
+        Game.add_event_listener(VIDEORESIZE, Game.resize)
+
+        def user_quit_listener(event):
+            if event.mod & KMOD_CTRL and event.key == K_q:
+                Game.end()
+        Game.add_event_listener(KEYDOWN, user_quit_listener)
+
+        Game.add_event_listener(KEYDOWN, Game.get_dog_disqualified)
 
         Timer(random.random()*3, Game.launch).start()
         while True:
-            fellowDogs = Game.get_dogs()
             for event in pygame.event.get():
-                if event.type == QUIT:
-                    Game.end()
-                if event.type == VIDEORESIZE:
-                    pygame.display.set_mode(event.size, flags=RESIZABLE)
-                    Game.redraw()
-                if event.type == KEYDOWN and event.mod & KMOD_CTRL and event.key == K_q:
-                    Game.end()
-                if event.type == KEYDOWN and event.key == K_SPACE:
-                    if Game.launched and not Game.finished and not fellowDogs[0].is_disqualified():
-                        fellowDogs[0].go_forward()
-                    else:
-                        fellowDogs[0].disqualify()
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                    if Game.launched and not Game.finished and not fellowDogs[1].is_disqualified():
-                        fellowDogs[1].go_forward()
-                    else:
-                        fellowDogs[1].disqualify()
-                        
+                if event.type in Game.listeners:
+                    for listener in Game.listeners[event.type]:
+                        listener(event)
+
             if not Game.finished:
                 Game.redraw()
-
-            for dog in fellowDogs:
-                if dog.progress >= 1 and not Game.finished:
-                    Game.finish(dog)
 
             Game.clock.tick(30)
 
