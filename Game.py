@@ -27,7 +27,7 @@ class Game():
         pygame.display.set_caption(Game.WINDOW_TITLE)
         pygame.display.set_mode(flags=RESIZABLE)
         self.entities.append(BackgroundEntity("pictures/running_track.png"))
-        DogEntity.init_runway(0.23, 0.1, 0.01, 0.70)
+        DogEntity.init_runway(0.25, 0.09, 0.01, 0.70)
         for i in range(0, len(self.key_for_line)):
             self.entities.append(
                 DogEntity("pictures/dog" + str(1 if i % 2 == 0 else 2) + ".png", i))
