@@ -1,7 +1,6 @@
 from ImageEntity import ImageEntity
 import pygame
 
-
 class DogEntity(ImageEntity):
 
     @staticmethod
